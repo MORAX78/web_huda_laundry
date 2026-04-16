@@ -101,9 +101,28 @@
                                 @endforeach
                             </tbody>
                             <tfoot>
+                                @php
+                                    $subtotal = $order->total - $order->tax;
+                                @endphp
+                                <tr class="table-light">
+                                    <td colspan="4" class="text-end fw-bold">SUBTOTAL:</td>
+                                    <td colspan="2" class="fw-bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr class="table-light">
+                                    <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
+                                    <td colspan="2" class="fw-bold">Rp {{ number_format($order->tax, 0, ',', '.') }}</td>
+                                </tr>
                                 <tr class="table-warning">
                                     <td colspan="4" class="text-end fw-bold fs-5">GRAND TOTAL:</td>
                                     <td colspan="2" class="fw-bold fs-5">Rp {{ number_format($order->total, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr class="table-info">
+                                    <td colspan="4" class="text-end fw-bold">UANG BAYAR:</td>
+                                    <td colspan="2" class="fw-bold">Rp {{ number_format($order->order_pay, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td colspan="4" class="text-end fw-bold">KEMBALIAN:</td>
+                                    <td colspan="2" class="fw-bold">Rp {{ number_format($order->order_change, 0, ',', '.') }}</td>
                                 </tr>
                             </tfoot>
                         </table>

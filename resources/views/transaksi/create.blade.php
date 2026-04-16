@@ -53,7 +53,7 @@
                                 <label class="form-label fw-bold">
                                     <i class="bi bi-calendar me-1"></i>Tanggal Order
                                 </label>
-                                <input type="text" class="form-control form-control-lg" value="{{ date('d/m/Y') }}" readonly>
+                                <input type="date" name="order_date" id="order_date" class="form-control form-control-lg" value="{{ date('Y-m-d', strtotime('today')) }}"    required>
                             </div>
                             <div class="col-md-3">
                                 <label for="order_end_date" class="form-label fw-bold">
@@ -82,7 +82,7 @@
                                         <th width="5%">No</th>
                                         <th width="30%">Layanan</th>
                                         <th width="15%">Harga</th>
-                                        <th width="10%">Qty</th>
+                                        <th width="10%">Qty (kg)</th>
                                         <th width="15%">Subtotal</th>
                                         <th width="20%">Catatan</th>
                                         <th width="5%">Aksi</th>
@@ -105,7 +105,7 @@
                                             <input type="text" class="form-control input-harga" readonly placeholder="Rp 0">
                                         </td>
                                         <td>
-                                            <input type="number" name="qty[]" class="form-control input-qty" min="1" value="1" required>
+                                            <input type="number" name="qty[]" class="form-control input-qty" min="0.1" step="0.1" value="1" required>
                                         </td>
                                         <td>
                                             <input type="text" class="form-control input-subtotal fw-bold" readonly placeholder="Rp 0">
@@ -121,6 +121,16 @@
                                     </tr>
                                 </tbody>
                                 <tfoot>
+                                    <tr class="table-light">
+                                        <td colspan="4" class="text-end fw-bold">SUBTOTAL:</td>
+                                        <td colspan="2" class="fw-bold" id="subtotalDisplay">Rp 0</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr class="table-light">
+                                        <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
+                                        <td colspan="2" class="fw-bold" id="taxDisplay">Rp 0</td>
+                                        <td></td>
+                                    </tr>
                                     <tr class="table-warning">
                                         <td colspan="4" class="text-end fw-bold fs-5">GRAND TOTAL:</td>
                                         <td colspan="2" class="fw-bold fs-5" id="grandTotalDisplay">Rp 0</td>
@@ -128,6 +138,25 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                        </div>
+
+                        {{-- Payment Section --}}
+                        <div class="row mt-4 justify-content-end">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body pt-3">
+                                        <div class="mb-3">
+                                            <label for="order_pay" class="form-label fw-bold">Uang Bayar (Pay)</label>
+                                            <input type="number" name="order_pay" id="order_pay" class="form-control form-control-lg text-end" placeholder="0" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="order_change" class="form-label fw-bold">Kembalian (Change)</label>
+                                            <input type="text" name="order_change_display" id="order_change_display" class="form-control form-control-lg text-end fw-bold text-success" value="Rp 0" readonly>
+                                            <input type="hidden" name="order_change" id="order_change" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Submit --}}
@@ -164,8 +193,8 @@
         const inputSubtotal = row.querySelector('.input-subtotal');
 
         const selectedOption = selectService.options[selectService.selectedIndex];
-        const price = parseInt(selectedOption.getAttribute('data-price')) || 0;
-        const qty = parseInt(inputQty.value) || 0;
+        const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+        const qty = parseFloat(inputQty.value) || 0;
         const subtotal = price * qty;
 
         inputHarga.value = formatRupiah(price);
@@ -176,17 +205,49 @@
 
     // Recalculate grand total
     function hitungGrandTotal() {
-        let grandTotal = 0;
+        let subtotal = 0;
         document.querySelectorAll('.row-detail').forEach(function(row) {
             const selectService = row.querySelector('.select-service');
             const inputQty = row.querySelector('.input-qty');
             const selectedOption = selectService.options[selectService.selectedIndex];
-            const price = parseInt(selectedOption.getAttribute('data-price')) || 0;
-            const qty = parseInt(inputQty.value) || 0;
-            grandTotal += price * qty;
+            const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+            const qty = parseFloat(inputQty.value) || 0;
+            subtotal += price * qty;
         });
+
+        const tax = subtotal * 0.1; // 10%
+        const grandTotal = subtotal + tax;
+
+        document.getElementById('subtotalDisplay').textContent = formatRupiah(subtotal);
+        document.getElementById('taxDisplay').textContent = formatRupiah(tax);
         document.getElementById('grandTotalDisplay').textContent = formatRupiah(grandTotal);
+
+        hitungKembalian(); // Update change as well
     }
+
+    // Calculate change
+    function hitungKembalian() {
+        const grandTotalText = document.getElementById('grandTotalDisplay').textContent;
+        const grandTotal = parseInt(grandTotalText.replace(/[^0-9]/g, '')) || 0;
+        const bayar = parseInt(document.getElementById('order_pay').value) || 0;
+        const kembalian = bayar - grandTotal;
+
+        const displayElement = document.getElementById('order_change_display');
+        displayElement.value = formatRupiah(kembalian > 0 ? kembalian : 0);
+        document.getElementById('order_change').value = kembalian > 0 ? kembalian : 0;
+
+        // Visual cue if payment is insufficient
+        if (bayar < grandTotal && bayar > 0) {
+            displayElement.classList.remove('text-success');
+            displayElement.classList.add('text-danger');
+            displayElement.value = "Kurang " + formatRupiah(Math.abs(kembalian));
+        } else {
+            displayElement.classList.remove('text-danger');
+            displayElement.classList.add('text-success');
+        }
+    }
+
+    document.getElementById('order_pay').addEventListener('input', hitungKembalian);
 
     // Update row numbers
     function updateRowNumbers() {
@@ -232,7 +293,7 @@
                 <input type="text" class="form-control input-harga" readonly placeholder="Rp 0">
             </td>
             <td>
-                <input type="number" name="qty[]" class="form-control input-qty" min="1" value="1" required>
+                <input type="number" name="qty[]" class="form-control input-qty" min="0.1" step="0.1" value="1" required>
             </td>
             <td>
                 <input type="text" class="form-control input-subtotal fw-bold" readonly placeholder="Rp 0">
@@ -287,6 +348,20 @@
                 icon: 'error',
                 title: 'Oops!',
                 text: 'Pilih minimal 1 layanan.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        const grandTotalText = document.getElementById('grandTotalDisplay').textContent;
+        const grandTotal = parseInt(grandTotalText.replace(/[^0-9]/g, '')) || 0;
+        const bayar = parseInt(document.getElementById('order_pay').value) || 0;
+
+        if (bayar < grandTotal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Pembayaran Kurang!',
+                text: 'Uang bayar (' + formatRupiah(bayar) + ') kurang dari Grand Total (' + formatRupiah(grandTotal) + ').',
                 confirmButtonColor: '#3085d6'
             });
             return;

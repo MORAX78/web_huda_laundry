@@ -13,16 +13,17 @@ class LaporanController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
-        // Get orders within the date range
+        // Get orders within the date range and status is Selesai (2) or Diambil (3)
         $orders = TransOrder::with(['customer', 'details.service'])
             ->whereBetween('order_date', [$startDate, $endDate])
+            ->whereIn('order_status', [2, 3])
             ->orderBy('order_date', 'asc')
             ->get();
 
         // Calculate totals
         $totalPendapatan = $orders->sum('total');
         $totalTransaksi = $orders->count();
-        $totalSelesai = $orders->whereIn('order_status', [2, 3])->count();
+        $totalSelesai = $orders->count();
         
         return view('laporan.index', compact(
             'orders', 'startDate', 'endDate', 

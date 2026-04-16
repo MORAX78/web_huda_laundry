@@ -11,7 +11,7 @@
 </div>
 
 <section class="section dashboard">
-    <p>Selamat datang, {{ auth()->user()->name }}! 👋</p>
+    <p>Selamat datang, {{ auth()->user()->name }}! </p>
     <p>Level: {{ auth()->user()->level->level_name }}</p>
 </section>
 @endsection

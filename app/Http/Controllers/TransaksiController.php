@@ -46,7 +46,7 @@ class TransaksiController extends Controller
             'service_id'           => 'required|array|min:1',
             'service_id.*'         => 'required|exists:type_of_service,id',
             'qty'                  => 'required|array|min:1',
-            'qty.*'                => 'required|integer|min:1',
+            'qty.*'                => 'required|numeric|min:0.1',
             'notes'                => 'nullable|array',
             'notes.*'              => 'nullable|string|max:255',
         ], [
@@ -54,8 +54,24 @@ class TransaksiController extends Controller
             'order_end_date.required' => 'Estimasi Selesai harus diisi.',
             'service_id.required'  => 'Tambahkan minimal 1 layanan.',
             'service_id.min'       => 'Tambahkan minimal 1 layanan.',
-            'qty.*.min'            => 'Qty minimal 1.',
+            'qty.*.min'            => 'Qty minimal 0.1.',
+            'order_pay'            => 'required|numeric',
         ]);
+
+        // Re-calculate to match what should be in DB
+        $subtotalOrder = 0;
+        foreach ($request->service_id as $i => $serviceId) {
+            $service = TypeOfService::findOrFail($serviceId);
+            $subtotalOrder += $service->price * $request->qty[$i];
+        }
+        $taxOrder = $subtotalOrder * 0.1;
+        $totalOrder = $subtotalOrder + $taxOrder;
+
+        if ($request->order_pay < $totalOrder) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan: Uang bayar kurang dari Grand Total (Minimal Rp ' . number_format($totalOrder, 0, ',', '.') . ').');
+        }
 
         DB::beginTransaction();
 
@@ -93,16 +109,20 @@ class TransaksiController extends Controller
                 ];
             }
 
+            $taxAmount = $grandTotal * 0.1; 
+            $finalTotal = $grandTotal + $taxAmount;
+
             // Create order header
             $order = TransOrder::create([
                 'id_customer'    => $request->id_customer,
                 'order_code'     => $orderCode,
-                'order_date'     => $today->toDateString(),
+                'order_date'     => $request->order_date ?? $today->toDateString(),
                 'order_end_date' => $request->order_end_date,
                 'order_status'   => 0,
-                'order_pay'      => 0,
-                'order_change'   => 0,
-                'total'          => $grandTotal,
+                'order_pay'      => $request->order_pay,
+                'order_change'   => $request->order_change,
+                'tax'            => $taxAmount,
+                'total'          => $finalTotal,
             ]);
 
             // Create order details

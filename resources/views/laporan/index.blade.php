@@ -148,7 +148,7 @@
 </section>
 
 <style>
-/* Sembunyikan elemen selain format cetak saat diprint */
+
 @media print {
     body * {
         visibility: hidden;

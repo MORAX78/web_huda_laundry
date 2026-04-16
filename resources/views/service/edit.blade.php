@@ -22,7 +22,7 @@
                         <input type="text" class="form-control" id="service_name" name="service_name" placeholder="Masukkan nama jasa" value="{{ old('service_name', $service->service_name) }}">
                     </div>
                     <div class="mb-3">
-                        <label for="price" class="form-label">Harga</label>
+                        <label for="price" class="form-label">Harga (kg)</label>
                         <input type="number" class="form-control" id="price" name="price" placeholder="Masukkan harga" value="{{ old('price', $service->price) }}">
                     </div>
                     <div class="mb-3">

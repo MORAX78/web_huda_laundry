@@ -19,7 +19,7 @@
                         <tr>
                             <th>No</th>
                             <th>Jenis Jasa</th>
-                            <th>Harga</th>
+                            <th>Harga (kg)</th>
                             <th>Deskripsi</th>
                             <th>Aksi</th>
                         </tr>

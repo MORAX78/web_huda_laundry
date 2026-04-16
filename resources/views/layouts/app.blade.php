@@ -82,7 +82,8 @@
             </li>
             @endif
 
-            @if($level == 'Operator' || $level == 'Administrator')
+            @if($level == 'Operator')
+            {{-- || $level == 'Administrator' --}}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{{ route('transaksi.index') }}">
                     <i class="bi bi-cart"></i>

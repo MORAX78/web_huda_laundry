@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('id_order')->references('id')->on('trans_order')->cascadeOnDelete();
             $table->unsignedBigInteger('id_service');
             $table->foreign('id_service')->references('id')->on('type_of_service')->cascadeOnDelete();
-            $table->integer('qty');
+            $table->double('qty');
             $table->integer('subtotal');
             $table->text('notes')->nullable();
             $table->timestamps();
