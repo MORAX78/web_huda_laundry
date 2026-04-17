@@ -8,6 +8,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\PickupController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\DashboardController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -19,9 +20,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::post('/customers/ajax-store', [CustomerController::class, 'ajaxStore'])->name('customers.ajax_store');
 });
 
 // Administrator

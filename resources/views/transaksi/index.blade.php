@@ -18,9 +18,24 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                         <h5 class="card-title mb-0">Daftar Transaksi</h5>
-                        <a href="{{ route('transaksi.create') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i> Tambah Transaksi
-                        </a>
+                        <div class="d-flex gap-2">
+                            <form action="{{ route('transaksi.index') }}" method="GET" class="d-flex w-100">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" placeholder="Cari Kode / Customer..." value="{{ request('search') }}">
+                                    <button class="btn btn-outline-secondary" type="submit" title="Cari">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    @if(request('search'))
+                                    <a href="{{ route('transaksi.index') }}" class="btn btn-outline-danger" title="Reset Pencarian">
+                                        <i class="bi bi-x-lg"></i>
+                                    </a>
+                                    @endif
+                                </div>
+                            </form>
+                            <a href="{{ route('transaksi.create') }}" class="btn btn-primary" style="white-space: nowrap;">
+                                <i class="bi bi-plus-circle me-1"></i> Tambah Transaksi
+                            </a>
+                        </div>
                     </div>
 
                     @if(session('error'))
@@ -48,7 +63,12 @@
                             <tr>
                                 <td>{{ $i + 1 }}</td>
                                 <td><span class="badge bg-info text-dark">{{ $order->order_code }}</span></td>
-                                <td>{{ $order->customer->customer_name ?? '-' }}</td>
+                                <td>
+                                    {{ $order->customer->customer_name ?? '-' }}
+                                    @if($order->is_member)
+                                        <small class="text-success" title="Transaksi Member Baru"><i class="bi bi-star-fill"></i></small>
+                                    @endif
+                                </td>
                                 <td>{{ \Carbon\Carbon::parse($order->order_date)->format('d/m/Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($order->order_end_date)->format('d/m/Y') }}</td>
                                 <td class="fw-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</td>
@@ -56,26 +76,24 @@
                                     @if($order->order_status == 0)
                                         <span class="badge bg-warning text-dark">Baru</span>
                                     @elseif($order->order_status == 1)
-                                        <span class="badge bg-primary">Proses</span>
-                                    @elseif($order->order_status == 2)
-                                        <span class="badge bg-success">Selesai</span>
-                                    @elseif($order->order_status == 3)
-                                        <span class="badge bg-secondary">Diambil</span>
+                                        <span class="badge bg-success">Sudah Diambil</span>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
-                                        <a href="{{ route('transaksi.show', $order->id) }}" class="btn btn-sm btn-outline-info" title="Detail">
+                                        <a href="{{ route('transaksi.show', $order->id) }}" class="d-inline btn btn-sm btn-outline-info" title="Detail">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        @if($order->order_status < 2)
-                                        <form action="{{ route('transaksi.update_status', $order->id) }}" method="POST" class="d-inline">
+                                        @if($order->order_status == 0)
+                                        <a href="{{ route('pickup.index') }}" class="btn btn-sm btn-success fw-bold" title="Pergi ke Menu Pickup">Pickup</a>
+                                        @endif
+                                        <form action="{{ route('transaksi.destroy', $order->id) }}" method="POST" class="d-inline form-delete">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Update Status">
-                                                <i class="bi bi-arrow-right-circle"></i>
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -95,4 +113,31 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.form-delete');
+        
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: 'Yakin ingin menghapus?',
+                    text: "Data transaksi ini akan disembunyikan (soft-delete).",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
 @endsection

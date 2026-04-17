@@ -37,29 +37,67 @@
                         {{-- Customer Selection --}}
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="id_customer" class="form-label fw-bold">
-                                    <i class="bi bi-person me-1"></i>Pilih Customer <span class="text-danger">*</span>
-                                </label>
-                                <select name="id_customer" id="id_customer" class="form-select form-select-lg" required>
-                                    <option value="">-- Pilih Customer --</option>
-                                    @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" {{ old('id_customer') == $customer->id ? 'selected' : '' }}>
-                                            {{ $customer->customer_name }} - {{ $customer->phone }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                {{-- Mode Selector --}}
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Tipe Pelanggan</label><br>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="customer_mode" id="mode_existing" value="existing" checked onchange="toggleCustomerMode()">
+                                        <label class="form-check-label" for="mode_existing">Member Terdaftar</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="customer_mode" id="mode_new" value="new" onchange="toggleCustomerMode()">
+                                        <label class="form-check-label" for="mode_new">Data Baru / Non-Member</label>
+                                    </div>
+                                </div>
+
+                                {{-- Section: Existing Customer --}}
+                                <div id="section_existing">
+                                    <label for="id_customer" class="form-label fw-bold">Pilih Pelanggan (Member)</label>
+                                    <select name="id_customer" id="id_customer" class="form-select form-select-lg">
+                                        <option value="">--Pilih Pelanggan--</option>
+                                        @foreach($customers as $customer)
+                                            <option value="{{ $customer->id }}" data-orders="{{ $customer->orders_count }}">
+                                                {{ $customer->customer_name }} - {{ $customer->phone }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Section: New Customer --}}
+                                <div id="section_new" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Nama Pelanggan</label>
+                                            <input type="text" name="new_customer_name" id="new_customer_name_field" class="form-control" placeholder="Nama Pelanggan">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">No. Telepon</label>
+                                            <input type="number" name="new_phone" id="new_phone_field" class="form-control" placeholder="No. Telepon">
+                                        </div>
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label">Alamat</label>
+                                            <textarea name="new_address" id="new_address_field" class="form-control" rows="2" placeholder="Alamat"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="is_member_baru" id="is_member_baru" value="1" onchange="hitungGrandTotal()">
+                                        <label class="form-check-label fw-bold text-success" for="is_member_baru">
+                                            Daftar sebagai Member Baru (Diskon 5%)
+                                        </label>                                    
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold">
                                     <i class="bi bi-calendar me-1"></i>Tanggal Order
                                 </label>
-                                <input type="date" name="order_date" id="order_date" class="form-control form-control-lg" value="{{ date('Y-m-d', strtotime('today')) }}"    required>
+                                <input type="date" name="order_date" id="order_date" class="form-control form-control-lg" required>
                             </div>
                             <div class="col-md-3">
                                 <label for="order_end_date" class="form-label fw-bold">
                                     <i class="bi bi-calendar-check me-1"></i>Estimasi Selesai
                                 </label>
-                                <input type="date" name="order_end_date" id="order_end_date" class="form-control form-control-lg" value="{{ date('Y-m-d', strtotime('+3 days')) }}" required>
+                                <input type="date" name="order_end_date" id="order_end_date" class="form-control form-control-lg" required>
                             </div>
                         </div>
 
@@ -131,6 +169,11 @@
                                         <td colspan="2" class="fw-bold" id="taxDisplay">Rp 0</td>
                                         <td></td>
                                     </tr>
+                                    <tr class="table-info">
+                                        <td colspan="4" class="text-end fw-bold text-primary">DISKON (<span id="discountPercentDisplay">0</span>%):</td>
+                                        <td colspan="2" class="fw-bold text-primary" id="discountDisplay"> Rp 0</td>
+                                        <td></td>
+                                    </tr>
                                     <tr class="table-warning">
                                         <td colspan="4" class="text-end fw-bold fs-5">GRAND TOTAL:</td>
                                         <td colspan="2" class="fw-bold fs-5" id="grandTotalDisplay">Rp 0</td>
@@ -142,6 +185,16 @@
 
                         {{-- Payment Section --}}
                         <div class="row mt-4 justify-content-end">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="voucher_code" class="form-label fw-bold">Kode Voucher (Diskon 10%)</label>
+                                    <div class="input-group">
+                                        <input type="text" name="voucher_code" id="voucher_code" class="form-control" placeholder="Masukkan kode voucher">
+                                        <button type="button" class="btn btn-outline-primary" id="btnCekVoucher">Cek</button>
+                                    </div>
+                                    <small class="text-muted">Gunakan <b>LAUNDRY10</b> untuk diskon tambahan.</small>
+                                </div>
+                            </div>
                             <div class="col-md-4">
                                 <div class="card bg-light">
                                     <div class="card-body pt-3">
@@ -174,6 +227,8 @@
             </div>
         </div>
     </div>
+</section>
+
 </section>
 
 {{-- Data services for JS --}}
@@ -215,20 +270,85 @@
             subtotal += price * qty;
         });
 
-        const tax = subtotal * 0.1; // 10%
-        const grandTotal = subtotal + tax;
+        // Logic Discount
+        let discountPercent = 0;
+        const mode = document.querySelector('input[name="customer_mode"]:checked').value;
+
+        if (mode === 'new') {
+            const isMemberNew = document.getElementById('is_member_baru').checked;
+            if (isMemberNew) discountPercent += 5;
+        }
+
+        // Cek Voucher (LAUNDRY10)
+        const voucherInput = document.getElementById('voucher_code').value;
+        if (voucherInput === 'LAUNDRY10') {
+            discountPercent += 10;
+        }
+
+        const discountAmount = Math.round(subtotal * (discountPercent / 100));
+        const tax = Math.round((subtotal - discountAmount) * 0.1); // 10% after discount
+        const grandTotal = subtotal - discountAmount + tax;
 
         document.getElementById('subtotalDisplay').textContent = formatRupiah(subtotal);
+        document.getElementById('discountPercentDisplay').textContent = discountPercent;
+        document.getElementById('discountDisplay').textContent = formatRupiah(discountAmount);
         document.getElementById('taxDisplay').textContent = formatRupiah(tax);
-        document.getElementById('grandTotalDisplay').textContent = formatRupiah(grandTotal);
+        
+        const gtDisplay = document.getElementById('grandTotalDisplay');
+        gtDisplay.textContent = formatRupiah(grandTotal);
+        gtDisplay.setAttribute('data-value', grandTotal); // Simpan nilai asli tanpa format di sini
 
         hitungKembalian(); // Update change as well
     }
 
+    // Toggle mode antara pelanggan lama (existing) dan baru (new)
+    function toggleCustomerMode() {
+        const mode = document.querySelector('input[name="customer_mode"]:checked').value;
+        const sectionExisting = document.getElementById('section_existing');
+        const sectionNew = document.getElementById('section_new');
+        
+        if (mode === 'existing') {
+            sectionExisting.style.display = 'block';
+            sectionNew.style.display = 'none';
+            // Reset fields new customer if switched back
+            document.getElementById('new_customer_name_field').value = '';
+            document.getElementById('new_phone_field').value = '';
+            document.getElementById('new_address_field').value = '';
+            document.getElementById('is_member_baru').checked = false;
+        } else {
+            sectionExisting.style.display = 'none';
+            sectionNew.style.display = 'block';
+            // Reset dropdown existing if switched
+            document.getElementById('id_customer').value = '';
+        }
+        hitungGrandTotal();
+    }
+
+    // Trigger hitung ketika ganti customer (dropdown)
+    document.getElementById('id_customer').addEventListener('change', hitungGrandTotal);
+    document.getElementById('btnCekVoucher').addEventListener('click', function() {
+        const voucherInput = document.getElementById('voucher_code').value;
+        if (voucherInput === 'LAUNDRY10') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Voucher Berhasil!',
+                text: 'Potongan harga 10% diaktifkan.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } else if (voucherInput !== "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Voucher Tidak Valid',
+                text: 'Kode voucher yang Anda masukkan salah.',
+            });
+        }
+        hitungGrandTotal();
+    });
+
     // Calculate change
     function hitungKembalian() {
-        const grandTotalText = document.getElementById('grandTotalDisplay').textContent;
-        const grandTotal = parseInt(grandTotalText.replace(/[^0-9]/g, '')) || 0;
+        const grandTotal = parseFloat(document.getElementById('grandTotalDisplay').getAttribute('data-value')) || 0;
         const bayar = parseInt(document.getElementById('order_pay').value) || 0;
         const kembalian = bayar - grandTotal;
 
@@ -382,5 +502,7 @@
             }
         });
     });
+
+    // Handle Quick Customer Creation
 </script>
 @endsection

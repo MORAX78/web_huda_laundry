@@ -36,54 +36,7 @@
         </div>
     </div>
 
-    {{-- Summary Cards --}}
-    <div class="row">
-        <div class="col-xxl-4 col-md-4">
-            <div class="card info-card sales-card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Transaksi</h5>
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-cart"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6>{{ $totalTransaksi }}</h6>
-                            <span class="text-muted small pt-2 ps-1">transaksi dalam periode</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="col-xxl-4 col-md-4">
-            <div class="card info-card revenue-card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Pendapatan</h5>
-                    <div class="d-flex align-items-center">
-                        <div class="ps-3">
-                            <h6>Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xxl-4 col-md-4">
-            <div class="card info-card customers-card">
-                <div class="card-body">
-                    <h5 class="card-title">Order Selesai/Diambil</h5>
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success text-white">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6>{{ $totalSelesai }}</h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{-- Table Report --}}
     <div class="card">
@@ -112,11 +65,7 @@
                                 @if($order->order_status == 0)
                                     <span class="badge bg-warning text-dark">Baru</span>
                                 @elseif($order->order_status == 1)
-                                    <span class="badge bg-primary">Proses</span>
-                                @elseif($order->order_status == 2)
-                                    <span class="badge bg-success">Selesai</span>
-                                @elseif($order->order_status == 3)
-                                    <span class="badge bg-dark">Diambil</span>
+                                    <span class="badge bg-success">Sudah Diambil</span>
                                 @endif
                             </td>
                             <td class="text-end fw-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</td>

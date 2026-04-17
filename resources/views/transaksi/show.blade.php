@@ -38,6 +38,16 @@
                                     <th>Alamat</th>
                                     <td>{{ $order->customer->address ?? '-' }}</td>
                                 </tr>
+                                <tr>
+                                    <th>Tipe Pelanggan</th>
+                                    <td>
+                                        @if($order->is_member)
+                                            <span class="badge bg-success"><i class="bi bi-star-fill me-1"></i>Member Baru (Diskon 5%)</span>
+                                        @else
+                                            <span class="badge bg-secondary">Bukan Member</span>
+                                        @endif
+                                    </td>
+                                </tr>
                             </table>
                         </div>
                         <div class="col-md-6">
@@ -54,13 +64,9 @@
                                     <th>Status</th>
                                     <td>
                                         @if($order->order_status == 0)
-                                            <span class="badge bg-warning text-dark">Baru</span>
+                                            <span class="badge bg-warning text-dark">Baru (Belum Diambil)</span>
                                         @elseif($order->order_status == 1)
-                                            <span class="badge bg-primary">Proses</span>
-                                        @elseif($order->order_status == 2)
-                                            <span class="badge bg-success">Selesai</span>
-                                        @elseif($order->order_status == 3)
-                                            <span class="badge bg-secondary">Diambil</span>
+                                            <span class="badge bg-success">Sudah Diambil</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -111,6 +117,10 @@
                                 <tr class="table-light">
                                     <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
                                     <td colspan="2" class="fw-bold">Rp {{ number_format($order->tax, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr class="table-info">
+                                    <td colspan="4" class="text-end fw-bold text-primary">DISKON:</td>
+                                    <td colspan="2" class="fw-bold text-primary">- Rp {{ number_format($order->discount, 0, ',', '.') }} {{ $order->voucher_code ? '('.$order->voucher_code.')' : '' }}</td>
                                 </tr>
                                 <tr class="table-warning">
                                     <td colspan="4" class="text-end fw-bold fs-5">GRAND TOTAL:</td>

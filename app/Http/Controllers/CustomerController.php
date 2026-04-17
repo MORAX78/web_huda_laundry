@@ -66,4 +66,24 @@ class CustomerController extends Controller
         $customer->delete();
         return redirect()->route('customers.index')->with('success', 'Customer berhasil dihapus');
     }
+
+    public function ajaxStore(Request $request)
+    {
+        $request->validate([
+            'customer_name' => 'required',
+            'phone' => 'required|unique:customer,phone',
+            'address' => 'required',
+        ]);
+
+        $customer = Customer::create([
+            'customer_name' => $request->customer_name,
+            'phone' => $request->phone,
+            'address' => $request->address,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $customer
+        ]);
+    }
 }

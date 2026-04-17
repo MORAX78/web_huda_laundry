@@ -19,9 +19,9 @@ class PickupController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Orders yang sudah selesai tapi belum di-pickup
+        // Orders yang belum di-pickup (status 0)
         $ordersReady = TransOrder::with('customer')
-            ->where('order_status', 2) // Selesai
+            ->where('order_status', 0) // Baru
             ->whereDoesntHave('pickup')
             ->get();
 
@@ -34,7 +34,7 @@ class PickupController extends Controller
     public function create(Request $request)
     {
         $order = TransOrder::with(['customer', 'details.service'])
-            ->where('order_status', 2)
+            ->where('order_status', 0)
             ->findOrFail($request->order_id);
 
         return view('pickup.create', compact('order'));
@@ -67,8 +67,8 @@ class PickupController extends Controller
                 'notes'       => $request->notes,
             ]);
 
-            // Update order status to "Diambil" (3)
-            $order->update(['order_status' => 3]);
+            // Update order status to "Sudah Diambil" (1)
+            $order->update(['order_status' => 1]);
 
             DB::commit();
 

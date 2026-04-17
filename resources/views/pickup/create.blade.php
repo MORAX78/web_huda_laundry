@@ -65,7 +65,7 @@
                             <tr>
                                 <th>No</th>
                                 <th>Layanan</th>
-                                <th>Qty</th>
+                                <th>Qty (Kg)</th>
                                 <th>Subtotal</th>
                             </tr>
                         </thead>
