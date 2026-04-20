@@ -163,7 +163,7 @@
                                         <td colspan="2" class="fw-bold" id="subtotalDisplay">Rp 0</td>
                                         <td></td>
                                     </tr>
-                                    <tr class="table-light" style="display: none;">
+                                    <tr class="table-light">
                                         <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
                                         <td colspan="2" class="fw-bold" id="taxDisplay">Rp 0</td>
                                         <td></td>
@@ -269,11 +269,11 @@
             subtotal += price * qty;
         });
 
-        // Logic Discount (DISABLED FOR CLEAN VERSION)
+        // Logic Discount (DISABLED FOR TAX-ONLY VERSION)
         let discountPercent = 0;
         const discountAmount = 0;
-        const tax = 0;
-        const grandTotal = subtotal;
+        const tax = Math.round(subtotal * 0.1); 
+        const grandTotal = subtotal + tax;
 
         document.getElementById('subtotalDisplay').textContent = formatRupiah(subtotal);
         document.getElementById('discountPercentDisplay').textContent = discountPercent;
