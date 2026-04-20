@@ -38,7 +38,7 @@
                                     <th>Alamat</th>
                                     <td>{{ $order->customer->address ?? '-' }}</td>
                                 </tr>
-                                <tr>
+                                <tr style="display: none;">
                                     <th>Tipe Pelanggan</th>
                                     <td>
                                         @if($order->is_member)
@@ -108,17 +108,17 @@
                             </tbody>
                             <tfoot>
                                 @php
-                                    $subtotal = $order->total - $order->tax;
+                                    $subtotal = $order->total; // In clean version, subtotal is total
                                 @endphp
                                 <tr class="table-light">
                                     <td colspan="4" class="text-end fw-bold">SUBTOTAL:</td>
                                     <td colspan="2" class="fw-bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
                                 </tr>
-                                <tr class="table-light">
+                                <tr class="table-light" style="display: none;">
                                     <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
                                     <td colspan="2" class="fw-bold">Rp {{ number_format($order->tax, 0, ',', '.') }}</td>
                                 </tr>
-                                <tr class="table-info">
+                                <tr class="table-info" style="display: none;">
                                     <td colspan="4" class="text-end fw-bold text-primary">DISKON:</td>
                                     <td colspan="2" class="fw-bold text-primary">- Rp {{ number_format($order->discount, 0, ',', '.') }} {{ $order->voucher_code ? '('.$order->voucher_code.')' : '' }}</td>
                                 </tr>

@@ -37,21 +37,20 @@
                         {{-- Customer Selection --}}
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                {{-- Mode Selector --}}
-                                <div class="mb-3">
+                                <div class="mb-3" style="display: none;">
                                     <label class="form-label fw-bold">Tipe Pelanggan</label><br>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="customer_mode" id="mode_existing" value="existing" checked onchange="toggleCustomerMode()">
+                                        <input class="form-check-input" type="radio" name="customer_mode" id="mode_existing" value="existing" onchange="toggleCustomerMode()">
                                         <label class="form-check-label" for="mode_existing">Member Terdaftar</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="customer_mode" id="mode_new" value="new" onchange="toggleCustomerMode()">
+                                        <input class="form-check-input" type="radio" name="customer_mode" id="mode_new" value="new" checked onchange="toggleCustomerMode()">
                                         <label class="form-check-label" for="mode_new">Data Baru / Non-Member</label>
                                     </div>
                                 </div>
 
-                                {{-- Section: Existing Customer --}}
-                                <div id="section_existing">
+                                {{-- Section: Existing Customer (HIDDEN) --}}
+                                <div id="section_existing" style="display: none;">
                                     <label for="id_customer" class="form-label fw-bold">Pilih Pelanggan (Member)</label>
                                     <select name="id_customer" id="id_customer" class="form-select form-select-lg">
                                         <option value="">--Pilih Pelanggan--</option>
@@ -63,23 +62,23 @@
                                     </select>
                                 </div>
 
-                                {{-- Section: New Customer --}}
-                                <div id="section_new" style="display: none;">
+                                {{-- Section: New Customer (ACTIVE AS DEFAULT) --}}
+                                <div id="section_new">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Nama Pelanggan</label>
-                                            <input type="text" name="new_customer_name" id="new_customer_name_field" class="form-control" placeholder="Nama Pelanggan">
+                                            <input type="text" name="new_customer_name" id="new_customer_name_field" class="form-control" placeholder="Nama Pelanggan" required>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">No. Telepon</label>
-                                            <input type="number" name="new_phone" id="new_phone_field" class="form-control" placeholder="No. Telepon">
+                                            <input type="number" name="new_phone" id="new_phone_field" class="form-control" placeholder="No. Telepon" required>
                                         </div>
                                         <div class="col-md-12 mb-3">
                                             <label class="form-label">Alamat</label>
-                                            <textarea name="new_address" id="new_address_field" class="form-control" rows="2" placeholder="Alamat"></textarea>
+                                            <textarea name="new_address" id="new_address_field" class="form-control" rows="2" placeholder="Alamat" required></textarea>
                                         </div>
                                     </div>
-                                    <div class="form-check">
+                                    <div class="form-check" style="display: none;">
                                         <input class="form-check-input" type="checkbox" name="is_member_baru" id="is_member_baru" value="1" onchange="hitungGrandTotal()">
                                         <label class="form-check-label fw-bold text-success" for="is_member_baru">
                                             Daftar sebagai Member Baru (Diskon 5%)
@@ -164,12 +163,12 @@
                                         <td colspan="2" class="fw-bold" id="subtotalDisplay">Rp 0</td>
                                         <td></td>
                                     </tr>
-                                    <tr class="table-light">
+                                    <tr class="table-light" style="display: none;">
                                         <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
                                         <td colspan="2" class="fw-bold" id="taxDisplay">Rp 0</td>
                                         <td></td>
                                     </tr>
-                                    <tr class="table-info">
+                                    <tr class="table-info" style="display: none;">
                                         <td colspan="4" class="text-end fw-bold text-primary">DISKON (<span id="discountPercentDisplay">0</span>%):</td>
                                         <td colspan="2" class="fw-bold text-primary" id="discountDisplay"> Rp 0</td>
                                         <td></td>
@@ -185,7 +184,7 @@
 
                         {{-- Payment Section --}}
                         <div class="row mt-4 justify-content-end">
-                            <div class="col-md-4">
+                            <div class="col-md-4" style="display: none;">
                                 <div class="mb-3">
                                     <label for="voucher_code" class="form-label fw-bold">Kode Voucher (Diskon 10%)</label>
                                     <div class="input-group">
@@ -270,24 +269,11 @@
             subtotal += price * qty;
         });
 
-        // Logic Discount
+        // Logic Discount (DISABLED FOR CLEAN VERSION)
         let discountPercent = 0;
-        const mode = document.querySelector('input[name="customer_mode"]:checked').value;
-
-        if (mode === 'new') {
-            const isMemberNew = document.getElementById('is_member_baru').checked;
-            if (isMemberNew) discountPercent += 5;
-        }
-
-        // Cek Voucher (LAUNDRY10)
-        const voucherInput = document.getElementById('voucher_code').value;
-        if (voucherInput === 'LAUNDRY10') {
-            discountPercent += 10;
-        }
-
-        const discountAmount = Math.round(subtotal * (discountPercent / 100));
-        const tax = Math.round((subtotal - discountAmount) * 0.1); // 10% after discount
-        const grandTotal = subtotal - discountAmount + tax;
+        const discountAmount = 0;
+        const tax = 0;
+        const grandTotal = subtotal;
 
         document.getElementById('subtotalDisplay').textContent = formatRupiah(subtotal);
         document.getElementById('discountPercentDisplay').textContent = discountPercent;

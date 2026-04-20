@@ -110,15 +110,15 @@
     <div class="summary">
         <div>
             <span>Subtotal:</span>
-            <span>{{ number_format($order->total + $order->discount - $order->tax, 0, ',', '.') }}</span>
+            <span>{{ number_format($order->total, 0, ',', '.') }}</span>
         </div>
-        @if($order->discount > 0)
+        @if(false && $order->discount > 0)
         <div>
             <span>Diskon:</span>
             <span>-{{ number_format($order->discount, 0, ',', '.') }}</span>
         </div>
         @endif
-        <div>
+        <div style="display: none;">
             <span>Pajak (10%):</span>
             <span>{{ number_format($order->tax, 0, ',', '.') }}</span>
         </div>
