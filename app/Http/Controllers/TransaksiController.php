@@ -98,36 +98,10 @@ class TransaksiController extends Controller
                 ];
             }
 
-            // Logic Discount & Tax
-            $discountPercent = 0;
-            if ($request->customer_mode == 'new' && $request->has('is_member_baru')) {
-                $discountPercent += 5;
-            }
-            if ($request->voucher_code == 'LAUNDRY10') {
-                $discountPercent += 10;
-            }
-
-            $discountAmount = round($subtotalOrder * ($discountPercent / 100));
-            $taxAmount = round(($subtotalOrder - $discountAmount) * 0.1);
-            $totalOrder = $subtotalOrder - $discountAmount + $taxAmount;
-
-            // Generate order code: ORD-YYYYMMDD-XXXX
-            $today = Carbon::now();
-            $prefix = 'ORD-' . $today->format('Ymd') . '-';
-            
-            // Gunakan withTrashed() supaya tidak bentrok dengan data yang sudah dihapus (soft delete)
-            $lastOrder = TransOrder::withTrashed()
-                ->where('order_code', 'like', $prefix . '%')
-                ->orderBy('order_code', 'desc')
-                ->first();
-
-            if ($lastOrder) {
-                $lastNumber = (int) substr($lastOrder->order_code, -4);
-                $newNumber = $lastNumber + 1;
-            } else {
-                $newNumber = 1;
-            }
-            $orderCode = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+            // Logic Discount & Tax (FORCED TO 0 FOR CLEAN VERSION)
+            $discountAmount = 0;
+            $taxAmount = 0;
+            $totalOrder = $subtotalOrder;
 
             // Handle customer discovery or creation
             $customerId = $request->id_customer;
@@ -143,16 +117,16 @@ class TransaksiController extends Controller
             // Create order header
             $order = TransOrder::create([
                 'id_customer'    => $customerId,
-                'is_member'      => ($request->customer_mode == 'new' && $request->has('is_member_baru')) ? 1 : 0,
+                'is_member'      => 0, // ALWAYS 0 IN CLEAN VERSION
                 'order_code'     => $orderCode,
                 'order_date'     => $request->order_date ?? $today->toDateString(),
                 'order_end_date' => $request->order_end_date,
                 'order_status'   => 0,
                 'order_pay'      => $request->order_pay ?? 0,
                 'order_change'   => $request->order_change ?? 0,
-                'tax'            => $taxAmount,
-                'discount'       => $discountAmount,
-                'voucher_code'   => $request->voucher_code,
+                'tax'            => 0, // ALWAYS 0
+                'discount'       => 0, // ALWAYS 0
+                'voucher_code'   => null,
                 'total'          => $totalOrder,
             ]);
 
