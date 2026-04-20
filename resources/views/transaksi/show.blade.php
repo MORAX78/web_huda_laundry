@@ -108,13 +108,13 @@
                             </tbody>
                             <tfoot>
                                 @php
-                                    $subtotal = $order->total; // In clean version, subtotal is total
+                                    $subtotal = $order->total - $order->tax;
                                 @endphp
                                 <tr class="table-light">
                                     <td colspan="4" class="text-end fw-bold">SUBTOTAL:</td>
                                     <td colspan="2" class="fw-bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
                                 </tr>
-                                <tr class="table-light" style="display: none;">
+                                <tr class="table-light">
                                     <td colspan="4" class="text-end fw-bold">PAJAK (10%):</td>
                                     <td colspan="2" class="fw-bold">Rp {{ number_format($order->tax, 0, ',', '.') }}</td>
                                 </tr>

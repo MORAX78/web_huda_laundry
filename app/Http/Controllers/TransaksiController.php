@@ -98,10 +98,10 @@ class TransaksiController extends Controller
                 ];
             }
 
-            // Logic Discount & Tax (FORCED TO 0 FOR CLEAN VERSION)
+            // Logic Discount & Tax (TAX ENABLED, DISCOUNT FORCED TO 0)
             $discountAmount = 0;
-            $taxAmount = 0;
-            $totalOrder = $subtotalOrder;
+            $taxAmount = round($subtotalOrder * 0.1); 
+            $totalOrder = $subtotalOrder + $taxAmount;
 
             // Handle customer discovery or creation
             $customerId = $request->id_customer;
