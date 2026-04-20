@@ -54,8 +54,9 @@
                                 <th>Tgl Order</th>
                                 <th>Tgl Selesai</th>
                                 <th>Total</th>
-                                <th>Status</th>
-                                <th width="10%">Aksi</th>
+                                <th>Status Order</th>
+                                <th>Status Bayar</th>
+                                <th width="15%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,15 +75,23 @@
                                 <td class="fw-bold">Rp {{ number_format($order->total, 0, ',', '.') }}</td>
                                 <td>
                                     @if($order->order_status == 0)
-                                        <span class="badge bg-warning text-dark">Baru</span>
+                                        <span class="badge bg-warning text-dark">Belum Diambil</span>
                                     @elseif($order->order_status == 1)
                                         <span class="badge bg-success">Sudah Diambil</span>
                                     @endif
                                 </td>
                                 <td>
+                                    <span class="badge bg-{{ $order->payment_status_color }}">
+                                        {{ $order->payment_status }}
+                                    </span>
+                                </td>
+                                <td>
                                     <div class="d-flex gap-1">
-                                        <a href="{{ route('transaksi.show', $order->id) }}" class="d-inline btn btn-sm btn-outline-info" title="Detail">
+                                        <a href="{{ route('transaksi.show', $order->id) }}" class="btn btn-sm btn-outline-info" title="Detail">
                                             <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ route('transaksi.receipt', $order->id) }}" target="_blank" class="btn btn-sm btn-outline-dark" title="Cetak Struk">
+                                            <i class="bi bi-printer"></i>
                                         </a>
                                         @if($order->order_status == 0)
                                         <a href="{{ route('pickup.index') }}" class="btn btn-sm btn-success fw-bold" title="Pergi ke Menu Pickup">Pickup</a>

@@ -57,41 +57,37 @@
             @php $level = auth()->user()->level->level_name; @endphp
 
             @if($level == 'Administrator')
+            <li class="nav-heading">Data Master</li>
             <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#master-nav" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-people"></i><span>Master Data</span>
-                    <i class="bi bi-chevron-down ms-auto"></i>
+                <a class="nav-link {{ request()->routeIs('users.*') ? '' : 'collapsed' }}" href="{{ route('users.index') }}">
+                    <i class="bi bi-person"></i>
+                    <span>Data User</span>
                 </a>
-                <ul id="master-nav" class="nav-content collapse">
-                    <li>
-                        <a href="{{ route('users.index') }}">
-                            <i class="bi bi-circle"></i><span>Data User</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('customers.index') }}">
-                            <i class="bi bi-circle"></i><span>Data Customer</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('services.index') }}">
-                            <i class="bi bi-circle"></i><span>Jenis Service</span>
-                        </a>
-                    </li>
-                </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('customers.*') ? '' : 'collapsed' }}" href="{{ route('customers.index') }}">
+                    <i class="bi bi-people"></i>
+                    <span>Data Customer</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('services.*') ? '' : 'collapsed' }}" href="{{ route('services.index') }}">
+                    <i class="bi bi-list-stars"></i>
+                    <span>Jenis Service</span>
+                </a>
             </li>
             @endif
 
-            @if($level == 'Operator')
-            {{-- || $level == 'Administrator' --}}
+            @if($level == 'Administrator' || $level == 'Operator')
+            <li class="nav-heading">Layanan Laundry</li>
             <li class="nav-item">
-                <a class="nav-link collapsed" href="{{ route('transaksi.index') }}">
+                <a class="nav-link {{ request()->routeIs('transaksi.*') ? '' : 'collapsed' }}" href="{{ route('transaksi.index') }}">
                     <i class="bi bi-cart"></i>
                     <span>Transaksi</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link collapsed" href="{{ route('pickup.index') }}">
+                <a class="nav-link {{ request()->routeIs('pickup.*') ? '' : 'collapsed' }}" href="{{ route('pickup.index') }}">
                     <i class="bi bi-bag-check"></i>
                     <span>Pickup</span>
                 </a>
@@ -149,6 +145,17 @@ document.querySelectorAll('.btn-delete').forEach(button => {
         text: '{{ session('success') }}',
         showConfirmButton: false,
         timer: 2000
+    });
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: '{{ session('error') }}',
+        confirmButtonColor: '#3085d6'
     });
 </script>
 @endif

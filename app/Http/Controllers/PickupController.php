@@ -59,6 +59,22 @@ class PickupController extends Controller
         try {
             $order = TransOrder::findOrFail($request->id_order);
 
+            // Handle Pelunasan
+            $bayarTambahan = $request->input('bayar_pelunasan', 0);
+            $totalBayarBaru = $order->order_pay + $bayarTambahan;
+            
+            // Validasi di server (Double Check)
+            if ($totalBayarBaru < $order->total) {
+                throw new \Exception('Sisa tagihan belum dilunasi.');
+            }
+
+            // Update Transaksi ke Lunas
+            $order->update([
+                'order_pay' => $totalBayarBaru,
+                'order_change' => $totalBayarBaru - $order->total,
+                'order_status' => 1 // Sudah Diambil
+            ]);
+
             // Create pickup record
             TransLaundryPickup::create([
                 'id_order'    => $order->id,
@@ -67,19 +83,16 @@ class PickupController extends Controller
                 'notes'       => $request->notes,
             ]);
 
-            // Update order status to "Sudah Diambil" (1)
-            $order->update(['order_status' => 1]);
-
             DB::commit();
 
             return redirect()->route('pickup.index')
-                ->with('success', 'Pickup berhasil dicatat! Order ' . $order->order_code . ' sudah diambil.');
+                ->with('success', 'Pickup berhasil! Pembayaran dilunasi dan Order ' . $order->order_code . ' telah diambil.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan pickup: ' . $e->getMessage());
+                ->with('error', 'Gagal memproses pickup: ' . $e->getMessage());
         }
     }
 

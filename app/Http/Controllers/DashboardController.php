@@ -10,16 +10,29 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Monthly statistics (Default view)
         $startOfMonth = Carbon::now()->startOfMonth()->toDateString();
         $endOfMonth = Carbon::now()->endOfMonth()->toDateString();
 
-        // Stats for current month
         $ordersThisMonth = TransOrder::whereBetween('order_date', [$startOfMonth, $endOfMonth])->get();
 
-        $totalTransaksi = $ordersThisMonth->count();
-        $totalPendapatan = $ordersThisMonth->where('order_status', 1)->sum('total');
-        $totalSelesai = $ordersThisMonth->where('order_status', 1)->count();
+        $totalTransaksi = TransOrder::count(); // Total all time
+        $totalPendapatan = TransOrder::sum('total'); // Total revenue from transaction values
+        $totalBelumDiambil = TransOrder::where('order_status', 0)->count();
+        $totalSudahDiambil = TransOrder::where('order_status', 1)->count();
 
-        return view('dashboard', compact('totalTransaksi', 'totalPendapatan', 'totalSelesai'));
+        // Recent Transactions
+        $recentOrders = TransOrder::with('customer')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return view('dashboard', compact(
+            'totalTransaksi', 
+            'totalPendapatan', 
+            'totalBelumDiambil', 
+            'totalSudahDiambil',
+            'recentOrders'
+        ));
     }
 }

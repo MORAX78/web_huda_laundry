@@ -1,5 +1,14 @@
 @extends('layouts.app')
 @section('content')
+<div class="pagetitle">
+    <h1>Tambah User</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Data User</a></li>
+            <li class="breadcrumb-item active">Tambah User</li>
+        </ol>
+    </nav>
+</div>
 <div class="row">
     <div class="col-sm-12">
         <div class="card">

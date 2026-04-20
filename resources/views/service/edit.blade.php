@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="pagetitle">
+    <h1>Edit Jenis Service</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item active">Edit Jenis Service</li>
+        </ol>
+    </nav>
+</div>
 <div class="row">
     <div class="col-sm-12">
         <div class="card">

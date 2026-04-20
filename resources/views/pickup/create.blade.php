@@ -54,6 +54,17 @@
                                     <th>Total</th>
                                     <td class="fw-bold fs-5 text-primary">Rp {{ number_format($order->total, 0, ',', '.') }}</td>
                                 </tr>
+                                <tr>
+                                    <th>Sudah Dibayar</th>
+                                    <td class="text-success fw-bold">Rp {{ number_format($order->order_pay, 0, ',', '.') }}</td>
+                                </tr>
+                                @php $sisaTagihan = $order->total - $order->order_pay; @endphp
+                                @if($sisaTagihan > 0)
+                                <tr class="table-danger">
+                                    <th>Sisa Tagihan</th>
+                                    <td class="text-danger fw-bold fs-5">Rp {{ number_format($sisaTagihan, 0, ',', '.') }}</td>
+                                </tr>
+                                @endif
                             </table>
                         </div>
                     </div>
@@ -102,6 +113,33 @@
                             </div>
                         </div>
 
+                        @if($sisaTagihan > 0)
+                        <div class="card bg-light border-danger mb-3">
+                            <div class="card-body pt-3">
+                                <h6 class="text-danger fw-bold mb-3"><i class="bi bi-cash-stack me-1"></i>Pelunasan Wajib</h6>
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="bayar_pelunasan" class="form-label fw-bold">Uang Bayar Pelunasan (Rp) <span class="text-danger">*</span></label>
+                                            <input type="number" name="bayar_pelunasan" id="bayar_pelunasan" 
+                                                   class="form-control form-control-lg" 
+                                                   value="{{ $sisaTagihan }}" min="{{ $sisaTagihan }}" required>
+                                            <small class="text-muted">Masukkan nominal pelunasan minimal Rp {{ number_format($sisaTagihan, 0, ',', '.') }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Kembalian</label>
+                                            <h4 id="kembalian_display" class="text-success fw-bold">Rp 0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                            <input type="hidden" name="bayar_pelunasan" value="0">
+                        @endif
+
                         <div class="d-flex justify-content-end gap-2 mt-3 mb-3">
                             <a href="{{ route('pickup.index') }}" class="btn btn-secondary btn-lg">
                                 <i class="bi bi-arrow-left me-1"></i> Kembali
@@ -119,13 +157,48 @@
 </section>
 
 <script>
+@if($sisaTagihan > 0)
+    const sisaTagihan = {{ $sisaTagihan }};
+    const inputBayar = document.getElementById('bayar_pelunasan');
+    const displayKembalian = document.getElementById('kembalian_display');
+
+    function formatRupiah(number) {
+        return "Rp " + new Intl.NumberFormat('id-ID').format(number);
+    }
+
+    inputBayar.addEventListener('input', function() {
+        const bayar = parseInt(this.value) || 0;
+        const kembalian = bayar - sisaTagihan;
+        displayKembalian.textContent = formatRupiah(kembalian > 0 ? kembalian : 0);
+        
+        if (bayar < sisaTagihan) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+@endif
+
 document.getElementById('formPickup').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = this;
 
+    @if($sisaTagihan > 0)
+    const bayar = parseInt(inputBayar.value) || 0;
+    if (bayar < sisaTagihan) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Pembayaran Kurang!',
+            text: 'Sisa tagihan Rp ' + sisaTagihan.toLocaleString() + ' harus dilunasi sebelum pickup.',
+            confirmButtonColor: '#3085d6'
+        });
+        return;
+    }
+    @endif
+
     Swal.fire({
         title: 'Konfirmasi Pickup?',
-        text: 'Order {{ $order->order_code }} akan ditandai sebagai sudah diambil.',
+        text: 'Order {{ $order->order_code }} akan ditandai sebagai sudah diambil dan lunas.',
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#0d6efd',

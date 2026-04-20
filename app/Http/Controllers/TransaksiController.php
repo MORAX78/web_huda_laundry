@@ -57,14 +57,15 @@ class TransaksiController extends Controller
             'new_customer_name'    => 'required_if:customer_mode,new|nullable|string|max:255',
             'new_phone'            => 'required_if:customer_mode,new|nullable|string|max:20|unique:customer,phone',
             'new_address'          => 'required_if:customer_mode,new|nullable|string',
-            'order_end_date'       => 'required|date',
+            'order_date'           => 'required|date',
+            'order_end_date'       => 'required|date|after_or_equal:order_date',
             'service_id'           => 'required|array|min:1',
             'service_id.*'         => 'required|exists:type_of_service,id',
             'qty'                  => 'required|array|min:1',
             'qty.*'                => 'required|numeric|min:0.1',
             'notes'                => 'nullable|array',
             'notes.*'              => 'nullable|string|max:255',
-            'order_pay'            => 'required|numeric',
+            'order_pay'            => 'nullable|numeric',
         ], [
             'id_customer.required_if' => 'Pilih customer terlebih dahulu.',
             'new_customer_name.required_if' => 'Nama pelanggan baru harus diisi.',
@@ -76,37 +77,47 @@ class TransaksiController extends Controller
             'qty.*.min'            => 'Qty minimal 0.1.',
         ]);
 
-        // Re-calculate to match what should be in DB
-        $subtotalOrder = 0;
-        foreach ($request->service_id as $i => $serviceId) {
-            $service = TypeOfService::findOrFail($serviceId);
-            $subtotalOrder += $service->price * $request->qty[$i];
-        }
-
-        // Logic Discount
-        $discountPercent = 0;
-        if ($request->customer_mode == 'new' && $request->has('is_member_baru')) {
-            $discountPercent += 5;
-        }
-        if ($request->voucher_code == 'LAUNDRY10') $discountPercent += 10;
-
-        $discountOrder = round($subtotalOrder * ($discountPercent / 100));
-        $taxOrder = round(($subtotalOrder - $discountOrder) * 0.1);
-        $totalOrder = $subtotalOrder - $discountOrder + $taxOrder;
-
-        if ($request->order_pay < $totalOrder) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Gagal menyimpan: Uang bayar kurang dari Grand Total (Minimal Rp ' . number_format($totalOrder, 0, ',', '.') . ').');
-        }
-
         DB::beginTransaction();
 
         try {
+            // Calculate total from all detail rows
+            $subtotalOrder = 0;
+            $detailRows = [];
+
+            foreach ($request->service_id as $i => $serviceId) {
+                $service = TypeOfService::findOrFail($serviceId);
+                $qty = $request->qty[$i];
+                $subtotal = $service->price * $qty;
+                $subtotalOrder += $subtotal;
+
+                $detailRows[] = [
+                    'id_service' => $service->id,
+                    'qty'        => $qty,
+                    'subtotal'   => $subtotal,
+                    'notes'      => $request->notes[$i] ?? null,
+                ];
+            }
+
+            // Logic Discount & Tax
+            $discountPercent = 0;
+            if ($request->customer_mode == 'new' && $request->has('is_member_baru')) {
+                $discountPercent += 5;
+            }
+            if ($request->voucher_code == 'LAUNDRY10') {
+                $discountPercent += 10;
+            }
+
+            $discountAmount = round($subtotalOrder * ($discountPercent / 100));
+            $taxAmount = round(($subtotalOrder - $discountAmount) * 0.1);
+            $totalOrder = $subtotalOrder - $discountAmount + $taxAmount;
+
             // Generate order code: ORD-YYYYMMDD-XXXX
             $today = Carbon::now();
             $prefix = 'ORD-' . $today->format('Ymd') . '-';
-            $lastOrder = TransOrder::where('order_code', 'like', $prefix . '%')
+            
+            // Gunakan withTrashed() supaya tidak bentrok dengan data yang sudah dihapus (soft delete)
+            $lastOrder = TransOrder::withTrashed()
+                ->where('order_code', 'like', $prefix . '%')
                 ->orderBy('order_code', 'desc')
                 ->first();
 
@@ -117,25 +128,6 @@ class TransaksiController extends Controller
                 $newNumber = 1;
             }
             $orderCode = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
-
-            // Calculate total from all detail rows
-            $grandTotal = 0;
-            $detailRows = [];
-
-            foreach ($request->service_id as $i => $serviceId) {
-                $service = TypeOfService::findOrFail($serviceId);
-                $qty = $request->qty[$i];
-                $subtotal = $service->price * $qty;
-                $grandTotal += $subtotal;
-
-                $detailRows[] = [
-                    'id_service' => $service->id,
-                    'qty'        => $qty,
-                    'subtotal'   => $subtotal,
-                    'notes'      => $request->notes[$i] ?? null,
-                ];
-            }
-
 
             // Handle customer discovery or creation
             $customerId = $request->id_customer;
@@ -148,17 +140,6 @@ class TransaksiController extends Controller
                 $customerId = $newCustomer->id;
             }
 
-            // Recalculate based on logic above to ensure matching integer
-            $discountPercent = 0;
-            if ($request->customer_mode == 'new' && $request->has('is_member_baru')) {
-                $discountPercent += 5;
-            }
-            if ($request->voucher_code == 'LAUNDRY10') $discountPercent += 10;
-
-            $discountAmount = round($grandTotal * ($discountPercent / 100));
-            $taxAmount = round(($grandTotal - $discountAmount) * 0.1); 
-            $finalTotal = $grandTotal - $discountAmount + $taxAmount;
-
             // Create order header
             $order = TransOrder::create([
                 'id_customer'    => $customerId,
@@ -167,12 +148,12 @@ class TransaksiController extends Controller
                 'order_date'     => $request->order_date ?? $today->toDateString(),
                 'order_end_date' => $request->order_end_date,
                 'order_status'   => 0,
-                'order_pay'      => $request->order_pay,
-                'order_change'   => $request->order_change,
+                'order_pay'      => $request->order_pay ?? 0,
+                'order_change'   => $request->order_change ?? 0,
                 'tax'            => $taxAmount,
                 'discount'       => $discountAmount,
                 'voucher_code'   => $request->voucher_code,
-                'total'          => $finalTotal,
+                'total'          => $totalOrder,
             ]);
 
             // Create order details
@@ -225,5 +206,14 @@ class TransaksiController extends Controller
         $order->delete(); // This will soft delete
 
         return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus (Soft Delete).');
+    }
+
+    /**
+     * Display printable receipt.
+     */
+    public function receipt($id)
+    {
+        $order = TransOrder::with(['customer', 'details.service'])->findOrFail($id);
+        return view('transaksi.receipt', compact('order'));
     }
 }

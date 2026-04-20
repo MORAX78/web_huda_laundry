@@ -25,19 +25,24 @@ Route::middleware('auth')->group(function () {
     Route::post('/customers/ajax-store', [CustomerController::class, 'ajaxStore'])->name('customers.ajax_store');
 });
 
-// Administrator
+// Administrator Only
 Route::middleware(['auth', 'role:Administrator'])->group(function () {
     Route::resource('/users', UserController::class);
     Route::resource('/customers', CustomerController::class);
     Route::resource('/services', ServiceController::class);  
 });
 
-// Operator
-Route::middleware(['auth', 'role:Operator'])->group(function () {
+// Administrator & Operator (Transaksi & Pickup)
+Route::middleware(['auth', 'role:Administrator,Operator'])->group(function () {
     Route::post('/transaksi/{id}/status', [TransaksiController::class, 'updateStatus'])->name('transaksi.update_status');
+    Route::get('/transaksi/{id}/receipt', [TransaksiController::class, 'receipt'])->name('transaksi.receipt');
     Route::resource('/transaksi', TransaksiController::class);
     Route::resource('/pickup', PickupController::class);
 });
+
+// Operator (Specific if any, current empty)
+// Route::middleware(['auth', 'role:Operator'])->group(function () {
+// });
 
 // Pimpinan
 Route::middleware(['auth', 'role:Pimpinan'])->group(function () {

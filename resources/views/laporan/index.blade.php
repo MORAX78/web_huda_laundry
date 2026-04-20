@@ -63,7 +63,7 @@
                             <td>{{ $order->customer->customer_name ?? '-' }}</td>
                             <td>
                                 @if($order->order_status == 0)
-                                    <span class="badge bg-warning text-dark">Baru</span>
+                                    <span class="badge bg-warning text-dark">Belum Diambil</span>
                                 @elseif($order->order_status == 1)
                                     <span class="badge bg-success">Sudah Diambil</span>
                                 @endif

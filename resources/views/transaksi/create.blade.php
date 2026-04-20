@@ -114,7 +114,7 @@
                         </div>
 
                         <div class="table-responsive">
-                            <table class="table table-bordered align-middle" id="tableDetail">
+                            <table class="table table-striped align-middle" id="tableDetail">
                                 <thead class="table-dark">
                                     <tr>
                                         <th width="5%">No</th>
@@ -200,7 +200,7 @@
                                     <div class="card-body pt-3">
                                         <div class="mb-3">
                                             <label for="order_pay" class="form-label fw-bold">Uang Bayar (Pay)</label>
-                                            <input type="number" name="order_pay" id="order_pay" class="form-control form-control-lg text-end" placeholder="0" required>
+                                            <input type="number" name="order_pay" id="order_pay" class="form-control form-control-lg text-end" value="0" placeholder="0">
                                         </div>
                                         <div class="mb-0">
                                             <label for="order_change" class="form-label fw-bold">Kembalian (Change)</label>
@@ -457,17 +457,29 @@
         e.preventDefault();
         const form = this;
 
-        // Check if at least one service is selected
-        let hasService = false;
-        document.querySelectorAll('.select-service').forEach(function(select) {
-            if (select.value) hasService = true;
+        // Validasi: Semua baris layanan harus dipilih
+        let allServicesSelected = true;
+        const selectServices = document.querySelectorAll('.select-service');
+        
+        if (selectServices.length === 0) {
+            Swal.fire({ icon: 'error', title: 'Oops!', text: 'Tambahkan minimal 1 layanan.' });
+            return;
+        }
+
+        selectServices.forEach(function(select) {
+            if (!select.value || select.value === "") {
+                allServicesSelected = false;
+                select.classList.add('is-invalid');
+            } else {
+                select.classList.remove('is-invalid');
+            }
         });
 
-        if (!hasService) {
+        if (!allServicesSelected) {
             Swal.fire({
                 icon: 'error',
-                title: 'Oops!',
-                text: 'Pilih minimal 1 layanan.',
+                title: 'Data Belum Lengkap',
+                text: 'Pastikan semua baris layanan sudah dipilih layanannya.',
                 confirmButtonColor: '#3085d6'
             });
             return;
@@ -477,15 +489,8 @@
         const grandTotal = parseInt(grandTotalText.replace(/[^0-9]/g, '')) || 0;
         const bayar = parseInt(document.getElementById('order_pay').value) || 0;
 
-        if (bayar < grandTotal) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Pembayaran Kurang!',
-                text: 'Uang bayar (' + formatRupiah(bayar) + ') kurang dari Grand Total (' + formatRupiah(grandTotal) + ').',
-                confirmButtonColor: '#3085d6'
-            });
-            return;
-        }
+        // Uang bayar kurang diizinkan, jadi pengecekan ini dihapus atau hanya jadi peringatan santai (opsional)
+        // Kita langsung lanjut ke konfirmasi simpan
 
         Swal.fire({
             title: 'Simpan Transaksi?',
@@ -498,6 +503,13 @@
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
+                // Disable button and show loading to prevent double submit
+                const btnSubmit = document.querySelector('button[type="submit"]');
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
+                }
+                
                 form.submit();
             }
         });

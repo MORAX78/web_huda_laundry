@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="pagetitle">
+    <h1>Data User</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item active">Data User</li>
+        </ol>
+    </nav>
+</div>
 <div class="row">
     <div class="col-lg-12">
         <div class="card">

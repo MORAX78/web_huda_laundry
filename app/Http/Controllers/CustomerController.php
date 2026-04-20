@@ -22,8 +22,10 @@ class CustomerController extends Controller
     {
         $request->validate([
             'customer_name' => 'required',
-            'phone' => 'required',
+            'phone' => 'required|unique:customer,phone',
             'address' => 'required',
+        ], [
+            'phone.unique' => 'Nomor telepon ini sudah terdaftar. Gunakan nomor lain.'
         ]);
 
         Customer::create([
@@ -47,8 +49,10 @@ class CustomerController extends Controller
 
         $request->validate([
             'customer_name' => 'required',
-            'phone' => 'required',
+            'phone' => 'required|unique:customer,phone,' . $id,
             'address' => 'required',
+        ], [
+            'phone.unique' => 'Nomor telepon ini sudah digunakan oleh customer lain.'
         ]);
 
         $customer->update([
